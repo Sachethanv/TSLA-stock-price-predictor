@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tesla Stock Price Predictor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #f8f9fa;
+            --text-color: #2c3e50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+
+        .prediction {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tesla Stock Price Predictor</h1>
+        <form id="prediction-form">
+            <div class="input-group">
+                <label for="open">Opening Price ($)</label>
+                <input type="number" id="open" name="open" step="0.01" required>
+            </div>
+            <div class="input-group">
+                <label for="high">High Price ($)</label>
+                <input type="number" id="high" name="high" step="0.01" required>
+            </div>
+            <div class="input-group">
+                <label for="low">Low Price ($)</label>
+                <input type="number" id="low" name="low" step="0.01" required>
+            </div>
+            <div class="input-group">
+                <label for="volume">Volume</label>
+                <input type="number" id="volume" name="volume" required>
+            </div>
+            <button type="submit">Predict Price</button>
+        </form>
+
+        <div class="result">
+            <h2>Predicted Stock Price</h2>
+            <div class="prediction" id="prediction-value"></div>
+        </div>
+        <div class="error"></div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#prediction-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                $.ajax({
+                    url: '/predict',
+                    method: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            $('.error').hide();
+                            $('#prediction-value').text(response.prediction);
+                            $('.result').slideDown();
+                        } else {
+                            $('.result').hide();
+                            $('.error').text('Error: ' + response.error).slideDown();
+                        }
+                    },
+                    error: function() {
+                        $('.result').hide();
+                        $('.error').text('Server error occurred. Please try again.').slideDown();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
