@@ -1,0 +1,61 @@
+import pandas as pd
+import numpy as np
+import pickle
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+# Load dataset
+stock_df = pd.read_csv("/content/drive/MyDrive/TSLA_Updated_with_SMA_EMA.csv")
+
+# Selecting features for training
+features = ['Open', 'High', 'Low', 'Volume']
+target = 'Close'
+
+X = stock_df[features]
+y = stock_df[target]
+
+# Splitting into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Normalizing data
+scaler = MinMaxScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Train RandomForestRegressor
+model = RandomForestRegressor(n_estimators=500, max_depth=10, random_state=42)
+model.fit(X_train_scaled, y_train)
+
+# Predictions
+y_pred = model.predict(X_test_scaled)
+
+# Model Evaluation
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print(f"Mean Absolute Error: {mae}")
+print(f"Mean Squared Error: {mse}")
+print(f"R2 Score: {r2}")
+
+# Save the trained model and scaler
+with open("stock_model.pkl", "wb") as f:
+    pickle.dump(model, f)
+
+with open("scaler.pkl", "wb") as f:
+    pickle.dump(scaler, f)
+
+
+print("Model training complete. Model and scaler saved.")
+
+def predict_stock_price(open_price, high_price, low_price, volume):
+    input_data = np.array([[open_price, high_price, low_price, volume]])
+    input_scaled = scaler.transform(input_data)
+    predicted_price = model.predict(input_scaled)[0]
+    return f"Predicted Stock Price: ${predicted_price:.2f}"
+
+# Example usage
+print(predict_stock_price(354.00, 367.34, 353.67, 366960000))
